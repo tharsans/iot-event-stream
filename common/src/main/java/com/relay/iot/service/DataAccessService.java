@@ -10,6 +10,7 @@ import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import com.relay.iot.model.Field;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -61,11 +62,11 @@ public class DataAccessService {
       return connection;
    }
 
-    public static boolean save(String tableName, List<Field> fields) {
+    public static boolean save(String measurement, List<Field> fields) {
         InfluxDBClient client = getConnection();
         WriteApiBlocking writeApi = client.getWriteApiBlocking();
 
-        Point point = Point.measurement(tableName);
+        Point point = Point.measurement(measurement);
         for (Field field : fields)
         {
             if(field.getType() == Field.FieldType.LONG)
@@ -89,19 +90,20 @@ public class DataAccessService {
         return true;
     }
 
-    public static void dd()
+    public static String calculateMeasurementValue(String bucket, String operation, String startTime, String endTime, String measurement, List<Field> filterFields)
     {
-        String flux = "from(bucket:\"iot-data\") |> range(start: 0)";
-
+        String calculatedVal = null;
         QueryApi queryApi = getConnection().getQueryApi();
-
-        List<FluxTable> tables = queryApi.query(flux);
+        List<FluxTable> tables = queryApi.query(getFluxQuery(bucket, operation, startTime, endTime, measurement, filterFields));
         for (FluxTable fluxTable : tables) {
             List<FluxRecord> records = fluxTable.getRecords();
             for (FluxRecord fluxRecord : records) {
                 System.out.println(fluxRecord.getTime() + ": " + fluxRecord.getValueByKey("_value"));
+                //TODO: Fix
+                calculatedVal = fluxRecord.getValueByKey("_value").toString();
             }
         }
+        return calculatedVal;
     }
 
    public static void closeConnection() {
@@ -109,5 +111,43 @@ public class DataAccessService {
       {
          connection.close();
       }
+   }
+
+   protected static String getFluxQuery(String bucket, String operation, String start, String end, String measurement, List<Field> filterFields)
+   {
+       String fluxQuery = "from(bucket:\"" + bucket + "\")" +
+               " |> range(start: " + start + ", stop: " + end + ")" +
+               "|> filter(fn: (r) => r[\"_field\"] == \"value\" )";
+       if(StringUtils.isNotEmpty(measurement))
+       {
+           fluxQuery += "|> filter(fn: (r) => r._measurement == \"" + measurement +"\" )";
+       }
+       for (Field field : filterFields)
+       {
+           fluxQuery += "|> filter(fn: (r) => r._field == \"" + field.getName() + "\" and r._value == " + field.getValue() + " )";
+       }
+       fluxQuery += "|> " + getFunction(operation) + "\n" +
+               "|> yield()";
+       return fluxQuery;
+   }
+
+   protected static String getFunction(String operation)
+   {
+       String function = null;
+        switch (operation){
+            case "min":
+                function = "min()";
+                break;
+            case "max":
+                function = "min()";
+                break;
+            case "median":
+                function = "median()";
+                break;
+            case "average":
+                function = "mean()";
+                break;
+        }
+        return function;
    }
 }

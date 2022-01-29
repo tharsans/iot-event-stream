@@ -35,10 +35,10 @@ public class KafkaListenerService {
         {{
            add(new Field("sensor_id", Field.FieldType.STRING, event.getId())) ;
             add(new Field("sensor_name", Field.FieldType.STRING, event.getName())) ;
-            add(new Field("sensor_type", Field.FieldType.STRING, event.getType())) ;
+            //add(new Field("sensor_type", Field.FieldType.STRING, event.getType())) ;
             add(new Field("cluster_id", Field.FieldType.LONG, event.getClusterId())) ;
             add(new Field("value", Field.FieldType.DOUBLE, event.getValue())) ;
         }};
-        DataAccessService.save("sensor-data", fields);
+        DataAccessService.save(event.getType(), fields);
     }
 }

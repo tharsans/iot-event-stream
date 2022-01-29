@@ -16,6 +16,6 @@ public class SensorDataController {
     @PostMapping("/value")
     public Response getValue(@RequestBody SensorDataRequest request)
     {
-        return Response.success(sensorDataService.calculateValue(request));
+        return Response.success(sensorDataService.calculateMeasurement(request));
     }
 }
