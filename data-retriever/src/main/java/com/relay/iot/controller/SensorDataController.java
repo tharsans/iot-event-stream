@@ -13,9 +13,9 @@ public class SensorDataController {
     @Autowired
     private SensorDataService sensorDataService;
 
-    @PostMapping("/value")
-    public Response getValue(@RequestBody SensorDataRequest request)
+    @PostMapping("/aggData")
+    public Response getAggregatedValue(@RequestBody SensorDataRequest request)
     {
-        return Response.success(sensorDataService.calculateMeasurement(request));
+        return Response.success(sensorDataService.calculateAggVal(request));
     }
 }

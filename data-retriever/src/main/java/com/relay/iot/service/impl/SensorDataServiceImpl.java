@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 public class SensorDataServiceImpl implements SensorDataService {
     @Override
-    public String calculateMeasurement(SensorDataRequest request) {
+    public String calculateAggVal(SensorDataRequest request) {
         validate(request);
         List<Field> filters = new ArrayList<>();
         if(request.getClusterId() != null)
