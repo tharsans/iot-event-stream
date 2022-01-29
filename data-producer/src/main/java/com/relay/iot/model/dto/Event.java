@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
 public class Event {
     private Long id;
     private Double value;
-    private OffsetDateTime timestamp;
+    private Long timestamp;
     private String type;
     private String name;
     private Long clusterId;

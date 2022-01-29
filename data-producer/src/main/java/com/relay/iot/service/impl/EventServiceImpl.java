@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Random;
 
@@ -33,7 +34,7 @@ public class EventServiceImpl implements EventService  {
             String id = Integer.toString(i + 1);
             Double reading = readingMin + (readingMax - readingMin) * random.nextDouble();
             Integer clusterId = minClusterId + random.nextInt(maxClusterId - minClusterId + 1);
-            Event event = new Event(Long.valueOf(id), reading, OffsetDateTime.now(), "TEMP", "sensor-" + id, Long.valueOf(Integer.toString(clusterId)) );
+            Event event = new Event(Long.valueOf(id), reading, 100L, "TEMP", "sensor-" + id, Long.valueOf(Integer.toString(clusterId)) );
             kafkaTemplate.send(KAFKA_TOPIC, event);
             Integer heartBeat = request.getHeartBeat();
             if(heartBeat == null || heartBeat <=0 )
