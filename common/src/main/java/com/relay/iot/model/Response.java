@@ -1,4 +1,4 @@
-package com.relay.iot.model.dto;
+package com.relay.iot.model;
 
 import lombok.Data;
 

@@ -6,4 +6,8 @@ public class Constant {
     public static final String STRING = "string";
     public static final String BOOLEAN = "boolean";
     public static final String NUMBER = "number";
+
+    public enum OPERATION {
+        MIN, MAX, AVERAGE, MEDIAN
+    };
 }

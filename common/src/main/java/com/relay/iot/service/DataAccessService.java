@@ -8,6 +8,8 @@ import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
+import com.relay.iot.exception.InvalidDataException;
+import com.relay.iot.model.Constant;
 import com.relay.iot.model.Field;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -128,26 +130,32 @@ public class DataAccessService {
        }
        fluxQuery += "|> " + getFunction(operation) + "\n" +
                "|> yield()";
+       log.info("Flux query: {}", fluxQuery);
        return fluxQuery;
    }
 
    protected static String getFunction(String operation)
    {
        String function = null;
-        switch (operation){
-            case "min":
-                function = "min()";
-                break;
-            case "max":
-                function = "min()";
-                break;
-            case "median":
-                function = "median()";
-                break;
-            case "average":
-                function = "mean()";
-                break;
-        }
+       if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MIN.toString()))
+       {
+           function = "min()";
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MAX.toString()))
+       {
+           function = "max()";
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.AVERAGE.toString()))
+       {
+           function = "mean()";
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MEDIAN.toString()))
+       {
+           function = "median()";
+       }
+       else {
+           throw new InvalidDataException(106, "operation.invalid");
+       }
         return function;
    }
 }

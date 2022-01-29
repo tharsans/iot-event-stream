@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SensorDataRequest {
+public class AggDataRequest {
     private String startTime;
     private String endTime;
     private String operation;
