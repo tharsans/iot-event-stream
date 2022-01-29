@@ -1,33 +1,44 @@
 package com.relay.iot.service;
 
 //import com.relay.iot.config.KafkaListenerBinding;
+import com.relay.iot.model.Field;
 import com.relay.iot.model.dto.Event;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
-//@EnableBinding(KafkaListenerBinding.class)
+@Slf4j
 public class KafkaListenerService {
-
-    /*@StreamListener("input-channel-1")
-    public void process(KStream<String, Event> input)
-    {
-        Double avg, min, max, median;
-        input.foreach( (k,v) -> System.out.println("key: " + k + ", value: " + v));
-
-    }*/
-
-    @Autowired
-    private DBService dbService;
 
     @KafkaListener(topics = "iot-data",
             groupId = "id", containerFactory
             = "iotEventListener")
     public void process(Event event)
     {
-        System.out.println("New Entry: "
-                + event);
-        dbService.write(event);
+        log.info("Received new Event: " + event);
+       /* Map<String, Field> fields = new HashMap<>(){{
+            Field field = new Field().type(Field.TypeEnum.)
+           put("sensor_id", event.getId());
+            put("sensor_name", event.getName());
+            put("sensor_type", event.getType());
+            put("cluster_id", event.getClusterId());
+            put("value", event.getValue());
+        }};*/
+        List<Field> fields = new ArrayList<>()
+        {{
+           add(new Field("sensor_id", Field.FieldType.STRING, event.getId())) ;
+            add(new Field("sensor_name", Field.FieldType.STRING, event.getName())) ;
+            add(new Field("sensor_type", Field.FieldType.STRING, event.getType())) ;
+            add(new Field("cluster_id", Field.FieldType.LONG, event.getClusterId())) ;
+            add(new Field("value", Field.FieldType.DOUBLE, event.getValue())) ;
+        }};
+        DataAccessService.save("sensor-data", fields);
     }
 }
