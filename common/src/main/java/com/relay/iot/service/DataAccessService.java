@@ -15,30 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 public class DataAccessService {
-  /* @Value("${db.influx.url}")
-   private String url;
-
-   @Value("${db.influx.username}")
-   private String userName;
-
-   @Value("${db.influx.password}")
-   private String password;
-
-   @Value("${db.influx.organization}")
-   private String organization;
-
-   @Value("${spring.influx.bucket}")
-   private String bucket;
-
-   @Value("${db.influx.database}")
-   private String database;
-
-   @Value("${db.influx.token}")
-   private String token;*/
    private static final String url = "http://localhost:8086";
    private static final String organization = "relay";
    private static final String bucket = "iot-bucket";
@@ -94,18 +75,19 @@ public class DataAccessService {
 
     public static String calculateMeasurementValue(String bucket, String operation, String startTime, String endTime, String measurement, List<Field> filterFields)
     {
-        String calculatedVal = null;
+        //The aggregations are calculated based on each measurement.
+        //Hence get values of each measurement & then get overall measurement
+        List<Double> valuesByMeasurement = new ArrayList<>();
         QueryApi queryApi = getConnection().getQueryApi();
         List<FluxTable> tables = queryApi.query(getFluxQuery(bucket, operation, startTime, endTime, measurement, filterFields));
         for (FluxTable fluxTable : tables) {
             List<FluxRecord> records = fluxTable.getRecords();
             for (FluxRecord fluxRecord : records) {
-                System.out.println(fluxRecord.getTime() + ": " + fluxRecord.getValueByKey("_value"));
-                //TODO: Fix
-                calculatedVal = fluxRecord.getValueByKey("_value").toString();
+                log.info(fluxRecord.getTime() + ": " + fluxRecord.getValueByKey("_value"));
+                valuesByMeasurement.add(Double.valueOf(fluxRecord.getValueByKey("_value").toString()));
             }
         }
-        return calculatedVal;
+        return getResultantValue(valuesByMeasurement, operation);
     }
 
    public static void closeConnection() {
@@ -126,7 +108,8 @@ public class DataAccessService {
        }
        for (Field field : filterFields)
        {
-           fluxQuery += "|> filter(fn: (r) => r._field == \"" + field.getName() + "\" and r._value == " + field.getValue() + " )";
+           //TODO: Fix it when filter like clusterId is applied,
+           //fluxQuery += "|> filter(fn: (r) => r._field == \"" + field.getName() + "\" and r._value == " + field.getValue() + " )";
        }
        fluxQuery += "|> " + getFunction(operation) + "\n" +
                "|> yield()";
@@ -157,5 +140,29 @@ public class DataAccessService {
            throw new InvalidDataException(106, "operation.invalid");
        }
         return function;
+   }
+
+   protected static String getResultantValue(List<Double> measurementValues, String operation){
+       Double value = 0.0;
+       if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MIN.toString()))
+       {
+           value = measurementValues.stream().mapToDouble(Double::doubleValue).min().getAsDouble();
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MAX.toString()))
+       {
+           value = measurementValues.stream().mapToDouble(Double::doubleValue).max().getAsDouble();
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.AVERAGE.toString()))
+       {
+           value = measurementValues.stream().mapToDouble(Double::doubleValue).average().getAsDouble();
+       }
+       else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MEDIAN.toString()))
+       {
+           value = measurementValues.stream().mapToDouble(Double::doubleValue).average().getAsDouble();
+       }
+       else {
+           throw new InvalidDataException(106, "operation.invalid");
+       }
+       return value.toString();
    }
 }

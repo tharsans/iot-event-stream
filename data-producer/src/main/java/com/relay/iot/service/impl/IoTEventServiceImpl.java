@@ -42,7 +42,7 @@ public class IoTEventServiceImpl implements IoTEventService {
         {
             Event event = getEvent(i, request.getType());
             kafkaTemplate.send(streamTopic, event);
-            log.info("New event has been published successfully", event);
+            log.info("New event has been published successfully" + event);
             Integer heartBeat = request.getHeartBeat();
             if(heartBeat == null || heartBeat <=0 )
             {
