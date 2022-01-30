@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +18,4 @@ public class Event {
     private String type;
     private String name;
     private Long clusterId;
-
-
 }

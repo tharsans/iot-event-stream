@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EventRequest {
+public class IoTEventRequest {
     private Integer heartBeat;
     private Integer total;
     private String type;

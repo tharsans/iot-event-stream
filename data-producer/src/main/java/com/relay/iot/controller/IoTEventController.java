@@ -1,7 +1,7 @@
 package com.relay.iot.controller;
 
-import com.relay.iot.model.dto.EventRequest;
-import com.relay.iot.service.EventService;
+import com.relay.iot.model.dto.IoTEventRequest;
+import com.relay.iot.service.IoTEventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/")
-public class EventController {
+public class IoTEventController {
     @Autowired
-    private EventService eventService;
+    private IoTEventService eventService;
 
     @PostMapping(value = "producer/events", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String produce(@RequestBody EventRequest request) {
-        eventService.publish(request);
-        return "Domain crawler has scrapped your data";
+    public String produce(@RequestBody IoTEventRequest request) {
+        return eventService.publish(request);
     }
 }
