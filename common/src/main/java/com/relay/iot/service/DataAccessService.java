@@ -104,7 +104,7 @@ public class DataAccessService {
                "|> filter(fn: (r) => r[\"_field\"] == \"value\" )";
        if(StringUtils.isNotEmpty(measurement))
        {
-           fluxQuery += "|> filter(fn: (r) => r._measurement == \"" + measurement +"\" )";
+           fluxQuery += "|> filter(fn: (r) => r._measurement == \"" + measurement.toLowerCase() +"\" )";
        }
        for (Field field : filterFields)
        {
