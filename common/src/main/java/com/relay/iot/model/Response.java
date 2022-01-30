@@ -8,6 +8,10 @@ public class Response {
     private String message;
     private Object data;
 
+    public Response() {
+    }
+
+
     public Response(Integer code, String message) {
         this.code = code;
         this.message = message;
