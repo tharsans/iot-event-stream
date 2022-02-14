@@ -1,15 +1,13 @@
 package com.relay.iot.service;
 
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApiBlocking;
+import com.influxdb.client.*;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import com.relay.iot.exception.InvalidDataException;
 import com.relay.iot.model.Constant;
+import com.relay.iot.model.Event;
 import com.relay.iot.model.Field;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +71,31 @@ public class DataAccessService {
         return true;
     }
 
+    public static boolean saveAsBatch(List<Event> events) {
+       /*try(InfluxDBClient client = getConnection()){
+           try(WriteApi writeApi = client.makeWriteApi(WriteOptions.builder().batchSize(4). bufferLimit(600000).flushInterval(30000).build())) {
+               writeApi.writePoints(getPoints(events));
+               //writeApi.close();
+           }
+       }*/
+       try{
+           InfluxDBClient client = getConnection();
+           WriteApi writeApi = null;
+           try{
+               writeApi = client.makeWriteApi(WriteOptions.builder().batchSize(10). bufferLimit(600000).flushInterval(30000).build());
+               writeApi.writePoints(getPoints(events));
+               log.info("Saved to Influx DB with batch size of " + events.size());
+           }
+           finally {
+               writeApi.close();
+           }
+       }
+       finally {
+           closeConnection();
+       }
+        return true;
+    }
+
     public static String calculateMeasurementValue(String bucket, String operation, String startTime, String endTime, String measurement, List<Field> filterFields)
     {
         //The aggregations are calculated based on each measurement.
@@ -94,6 +117,7 @@ public class DataAccessService {
       if(connection != null)
       {
          connection.close();
+         connection = null;
       }
    }
 
@@ -165,4 +189,44 @@ public class DataAccessService {
        }
        return value.toString();
    }
+
+   public static List<Point> getPoints(List<Event> events)
+   {
+       List<Point> points = new ArrayList<>();
+       for(Event event : events) {
+           Point point = Point.measurement(event.getType());
+           for (Field field : getFields(event))
+           {
+               if(field.getType() == Field.FieldType.LONG)
+               {
+                   point.addField(field.getName(), Long.valueOf(field.getValue().toString()));
+               }
+               else if(field.getType() == Field.FieldType.DOUBLE)
+               {
+                   point.addField(field.getName(), Double.valueOf(field.getValue().toString()));
+               }
+               else if(field.getType() == Field.FieldType.BOOLEAN)
+               {
+                   point.addField(field.getName(), Boolean.valueOf(field.getValue().toString()));
+               }
+               else {
+                   point.addField(field.getName(), field.getValue().toString());
+               }
+           }
+           point.time(Instant.now().toEpochMilli(), WritePrecision.MS);
+           points.add(point);
+       }
+       return points;
+   }
+
+    protected static List<Field> getFields(Event event)
+    {
+        return new ArrayList<>()
+        {{
+            add(new Field("sensor_id", Field.FieldType.STRING, event.getId())) ;
+            add(new Field("sensor_name", Field.FieldType.STRING, event.getName())) ;
+            add(new Field("cluster_id", Field.FieldType.LONG, event.getClusterId())) ;
+            add(new Field("value", Field.FieldType.DOUBLE, event.getValue())) ;
+        }};
+    }
 }

@@ -1,6 +1,6 @@
 package com.relay.iot.config;
 
-import com.relay.iot.model.dto.Event;
+import com.relay.iot.model.Event;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;

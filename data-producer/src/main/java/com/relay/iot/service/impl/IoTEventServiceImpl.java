@@ -1,7 +1,7 @@
 package com.relay.iot.service.impl;
 
 import com.relay.iot.model.Constant;
-import com.relay.iot.model.dto.Event;
+import com.relay.iot.model.Event;
 import com.relay.iot.model.dto.IoTEventRequest;
 import com.relay.iot.service.IoTEventService;
 import lombok.extern.slf4j.Slf4j;

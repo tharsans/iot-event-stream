@@ -1,4 +1,4 @@
-package com.relay.iot.model.dto;
+package com.relay.iot.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
