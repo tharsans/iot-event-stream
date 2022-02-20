@@ -3,7 +3,7 @@ package com.relay.iot.service.impl;
 import com.relay.iot.model.Constant;
 import com.relay.iot.model.Event;
 import com.relay.iot.model.dto.IoTEventRequest;
-import com.relay.iot.service.IoTEventService;
+import com.relay.iot.service.IoTEventProduceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,7 +14,7 @@ import java.util.Random;
 
 @Service
 @Slf4j
-public class IoTEventServiceImpl implements IoTEventService {
+public class IoTEventProduceServiceImpl implements IoTEventProduceService {
     @Value("${data.producer.config.stream.topic}")
     private String streamTopic;
 
@@ -31,17 +31,20 @@ public class IoTEventServiceImpl implements IoTEventService {
 
     private KafkaTemplate<String, Event> kafkaTemplate;
 
-    public IoTEventServiceImpl(KafkaTemplate<String, Event> kafkaTemplate) {
+    public IoTEventProduceServiceImpl(KafkaTemplate<String, Event> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
     public String publish(IoTEventRequest request)
     {
         Integer messages = 0;
+        //Integer partitionKey = 0;
         for(int i = 0; i < request.getTotal(); i++)
         {
+            //partitionKey = messages % 3;
             Event event = getEvent(i, request.getType());
             kafkaTemplate.send(streamTopic, event);
+            //kafkaTemplate.send(streamTopic, Integer.toString(partitionKey), event);
             log.info("New event has been published successfully" + event);
             Integer heartBeat = request.getHeartBeat();
             if(heartBeat == null || heartBeat <=0 )

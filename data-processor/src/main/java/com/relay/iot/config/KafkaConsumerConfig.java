@@ -37,7 +37,6 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.relay.iot.model");
         props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, getFetchMinBytes());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "id");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getBatchSize());
         return new DefaultKafkaConsumerFactory<>(props);
     }
@@ -47,6 +46,7 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, Event> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(3);
         factory.setBatchListener(true);
         factory.setBatchErrorHandler(new BatchLoggingErrorHandler());
         return factory;
