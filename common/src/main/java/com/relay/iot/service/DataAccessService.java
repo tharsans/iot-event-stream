@@ -14,14 +14,21 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
 public class DataAccessService {
+    //TODO: Move out these as configuration variables
    private static final String url = "http://localhost:8086";
    private static final String organization = "relay";
    private static final String bucket = "iot-bucket";
-   private static final String token = "YeVsxcB7msHN0PB_DB-m02iAlSZk9jQH6GqSJURz0tm4CUqVdWOV_s2zty1jwLN8wMdZxJD85seEg3iFPaGjpg==";
+   private static final String token = "9-e9m-Yf6476i5ebuNWLkukKUMdxnMeiAnXMBsHpgWpIV4YP6ud93h-HmjcXCUdLqsGGTVvmLtA7H6wgwLDGrw==";
+   private static final Integer BATCH_SIZE = 1000;
+   private static final Integer BUFFER_SIZE = 600000;
+   private static final Integer FLUSH_INTERVAL = 30000;
+
 
    private static InfluxDBClient connection = null;
 
@@ -78,21 +85,21 @@ public class DataAccessService {
                //writeApi.close();
            }
        }*/
-       try{
-           InfluxDBClient client = getConnection();
-           WriteApi writeApi = null;
-           try{
-               writeApi = client.makeWriteApi(WriteOptions.builder().batchSize(10). bufferLimit(600000).flushInterval(30000).build());
-               writeApi.writePoints(getPoints(events));
-               log.info("Saved to Influx DB with batch size of " + events.size());
-           }
+        try {
+            InfluxDBClient client = getConnection();
+            WriteApi writeApi = null;
+               try {
+                   writeApi = client.makeWriteApi(WriteOptions.builder().batchSize(BATCH_SIZE). bufferLimit(BUFFER_SIZE).flushInterval(FLUSH_INTERVAL).build());
+                   writeApi.writePoints(getPoints(events));
+                   log.info("Saved to Influx DB with batch size of " + events.size());
+               }
            finally {
                writeApi.close();
            }
        }
-       finally {
-           closeConnection();
-       }
+        finally {
+            closeConnection();
+        }
         return true;
     }
 
@@ -182,6 +189,12 @@ public class DataAccessService {
        }
        else if(StringUtils.equalsIgnoreCase(operation, Constant.OPERATION.MEDIAN.toString()))
        {
+           Collections.sort(measurementValues);
+           double median;
+           if (measurementValues.size() % 2 == 0)
+               median = ((double)measurementValues.get(measurementValues.size()/2) + (double)measurementValues.get(measurementValues.size()/2 - 1)/2);
+           else
+               median = (double) measurementValues.get(measurementValues.size()/2);
            value = measurementValues.stream().mapToDouble(Double::doubleValue).average().getAsDouble();
        }
        else {
